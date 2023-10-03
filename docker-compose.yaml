@@ -21,6 +21,7 @@ services:
     image: keygen/api:latest
     ports:
       - "3000:3000"
+    command: "web"
     environment:
       SECRET_KEY_BASE: "${SECRET_KEY_BASE}"
       ENCRYPTION_DETERMINISTIC_KEY: "${ENCRYPTION_DETERMINISTIC_KEY}"
@@ -28,8 +29,26 @@ services:
       ENCRYPTION_KEY_DERIVATION_SALT: "${ENCRYPTION_KEY_DERIVATION_SALT}"
       DATABASE_URL: "postgres://postgres:postgres@postgres:5432/postgres"
       REDIS_URL: "redis://redis:6379"
-      KEYGEN_LICENSE_FILE_PATH: "${KEYGEN_LICENSE_FILE_PATH}"
-      KEYGEN_LICENSE_KEY: "${KEYGEN_LICENSE_KEY}"
+      KEYGEN_ACCOUNT_ID: "${KEYGEN_ACCOUNT_ID}"
+      KEYGEN_EDITION: "${KEYGEN_EDITION}"
+      KEYGEN_MODE: "${KEYGEN_MODE}"
+      KEYGEN_HOST: "${KEYGEN_HOST}"
+    volumes:
+      - keygen:/etc/keygen
+    links:
+      - postgres
+      - redis
+
+  worker:
+    image: keygen/api:latest
+    command: "worker"
+    environment:
+      SECRET_KEY_BASE: "${SECRET_KEY_BASE}"
+      ENCRYPTION_DETERMINISTIC_KEY: "${ENCRYPTION_DETERMINISTIC_KEY}"
+      ENCRYPTION_PRIMARY_KEY: "${ENCRYPTION_PRIMARY_KEY}"
+      ENCRYPTION_KEY_DERIVATION_SALT: "${ENCRYPTION_KEY_DERIVATION_SALT}"
+      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/postgres"
+      REDIS_URL: "redis://redis:6379"
       KEYGEN_ACCOUNT_ID: "${KEYGEN_ACCOUNT_ID}"
       KEYGEN_EDITION: "${KEYGEN_EDITION}"
       KEYGEN_MODE: "${KEYGEN_MODE}"
