@@ -4,7 +4,7 @@ This is a simple example of how to use the keygen.sh docker image with docker co
 
 ## Usage
 1. Clone this repository
-2. Run `docker-compose up -f docker-compose-db.yml -d` to init the database and redis
+2. Run `docker-compose -f .\docker-compose-db.yaml up -d` to init the database and redis
 3. Run to setup environment
 ```bash
 docker run --rm -it -e SECRET_KEY_BASE="$(openssl rand -hex 64)" \
