@@ -1,4 +1,31 @@
 services:
+  init:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM alpine
+        RUN apk add --no-cache openssl bash uuidgen
+        COPY ./keygen-init /usr/local/bin
+    entrypoint: keygen-init
+    volumes:
+      - source: ./
+        target: /var/keygen
+        type: bind
+
+  setup:
+    image: keygen/api:latest
+    environment:
+      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/keygen"
+      DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
+    env_file:
+      - path: .env
+      - path: keys.env
+        required: false
+    command: setup
+    depends_on: [ postgres ]
+    tty: true
+    stdin_open: true
+
   postgres:
     image: postgres:9.6
     ports:
@@ -6,7 +33,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_DB: keygen
     volumes:
       - postgres:/var/lib/postgresql/data
 
@@ -22,17 +49,17 @@ services:
     ports:
       - "3000:3000"
     command: "web"
+    env_file:
+      - path: .env
+      - path: keys.env
+        required: false
+      - path: account.env
+        required: false
     environment:
-      SECRET_KEY_BASE: "${SECRET_KEY_BASE}"
-      ENCRYPTION_DETERMINISTIC_KEY: "${ENCRYPTION_DETERMINISTIC_KEY}"
-      ENCRYPTION_PRIMARY_KEY: "${ENCRYPTION_PRIMARY_KEY}"
-      ENCRYPTION_KEY_DERIVATION_SALT: "${ENCRYPTION_KEY_DERIVATION_SALT}"
-      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/postgres"
+      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/keygen"
       REDIS_URL: "redis://redis:6379"
-      KEYGEN_ACCOUNT_ID: "${KEYGEN_ACCOUNT_ID}"
-      KEYGEN_EDITION: "${KEYGEN_EDITION}"
-      KEYGEN_MODE: "${KEYGEN_MODE}"
-      KEYGEN_HOST: "${KEYGEN_HOST}"
+      KEYGEN_ADMIN_USER: ${KEYGEN_ADMIN_USER}
+      KEYGEN_ADMIN_PASS: ${KEYGEN_ADMIN_PASS}
     volumes:
       - keygen:/etc/keygen
     links:
@@ -43,16 +70,14 @@ services:
     image: keygen/api:latest
     command: "worker"
     environment:
-      SECRET_KEY_BASE: "${SECRET_KEY_BASE}"
-      ENCRYPTION_DETERMINISTIC_KEY: "${ENCRYPTION_DETERMINISTIC_KEY}"
-      ENCRYPTION_PRIMARY_KEY: "${ENCRYPTION_PRIMARY_KEY}"
-      ENCRYPTION_KEY_DERIVATION_SALT: "${ENCRYPTION_KEY_DERIVATION_SALT}"
-      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/postgres"
+      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/keygen"
       REDIS_URL: "redis://redis:6379"
-      KEYGEN_ACCOUNT_ID: "${KEYGEN_ACCOUNT_ID}"
-      KEYGEN_EDITION: "${KEYGEN_EDITION}"
-      KEYGEN_MODE: "${KEYGEN_MODE}"
-      KEYGEN_HOST: "${KEYGEN_HOST}"
+      KEYGEN_ADMIN_USER: ${KEYGEN_ADMIN_USER}
+      KEYGEN_ADMIN_PASS: ${KEYGEN_ADMIN_PASS}
+    env_file:
+      - path: .env
+      - path: keys.env
+        required: false
     volumes:
       - keygen:/etc/keygen
     links:
