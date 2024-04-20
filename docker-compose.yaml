@@ -4,8 +4,10 @@ services:
       context: .
       dockerfile_inline: |
         FROM alpine
-        RUN apk add --no-cache openssl bash uuidgen
+        RUN apk add --no-cache openssl bash uuidgen        
         COPY ./keygen-init /usr/local/bin
+        RUN dos2unix /usr/local/bin/keygen-init
+        RUN chmod +x /usr/local/bin/keygen-init
     entrypoint: keygen-init
     volumes:
       - source: ./

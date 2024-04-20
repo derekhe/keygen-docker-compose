@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
+set -x
 
+echo "Checking if keys.env exists..."
 if ! [ -f /var/keygen/keys.env ]; then
   echo "keys.env does not exist, initializing values..."
   cat << EOF > /var/keygen/keys.env
